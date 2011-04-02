@@ -7,8 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
-import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.event.server.PluginEnableEvent;
+import org.bukkit.event.server.PluginEvent;
 import org.bukkit.event.server.ServerListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -95,14 +94,14 @@ public class MyWarp extends JavaPlugin {
         MWBlockListener blockListener = new MWBlockListener(warpList);
         ServerListener serverListner = new ServerListener() {
             @Override
-            public void onPluginEnable(PluginEnableEvent event) {
+            public void onPluginEnabled(PluginEvent event) {
                 if (event.getPlugin().getDescription().getName().equals("Permissions")) {
                     MyWarp.permissions.init(event.getPlugin());
                 }
             }
 
             @Override
-            public void onPluginDisable(PluginDisableEvent event) {
+            public void onPluginDisabled(PluginEvent event) {
                 if (event.getPlugin().getDescription().getName().equals("Permissions")) {
                     MyWarp.permissions.init(null);
                 }
@@ -112,12 +111,6 @@ public class MyWarp extends JavaPlugin {
         // Unless an event is called, to tell all enabled plugins
         MyWarp.permissions.init(this.getServer().getPluginManager().getPlugin("Permissions"));
 
-        try {
-            this.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_INTERACT, new WMPlayerListener(warpList), Priority.Normal, this);
-        } catch (NoSuchFieldError nsfe) {
-            MyWarp.logger.warning("Unable to register right click event. Notify xZise about this and the build you are using:");
-            MyWarp.logger.info("Your Craftbukkit build: " + this.getServer().getVersion());
-        }
         this.getServer().getPluginManager().registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, serverListner, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_DISABLE, serverListner, Priority.Low, this);
