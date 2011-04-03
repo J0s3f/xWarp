@@ -25,7 +25,7 @@ public class MWBlockListener extends BlockListener {
                 signWarp.warp(this.list, event.getPlayer());
         }
     }
-    
+
     public void onSignChange(SignChangeEvent event) {
     	Block block = event.getBlock();
     	if (block.getState() instanceof Sign && MyWarp.permissions.permissionOr(event.getPlayer(), PermissionTypes.SIGN_WARP_GLOBAL, PermissionTypes.SIGN_WARP_INVITED, PermissionTypes.SIGN_WARP_OTHER, PermissionTypes.SIGN_WARP_OWN)) {    		

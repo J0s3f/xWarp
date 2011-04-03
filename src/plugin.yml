@@ -1,5 +1,5 @@
 name: xWarp
-version: 2.7.5-legacy
+version: 2.7.6-legacy
 main: me.taylorkelly.mywarp.MyWarp
 description: Implementation to create warp points!
 authors:
@@ -10,3 +10,6 @@ commands:
     description: Warp commands
     usage: /<command> help - Displays the help for xWarp
     aliases: [xwarp, w]
+  go:
+    description: Warps you to the saved location.
+    usage: /<command> [to] <warpname> [owner] [warped player]
