@@ -89,7 +89,7 @@ public class ImportCommand extends DefaultSubCommand {
                 // Max lines - 1 (for the header) - 1 (for the succeed message)
                 if (notAllowedWarps.size() < MinecraftUtil.getMaximumLines(sender) - 1) {
                     for (Warp warp : notAllowedWarps) {
-                        sender.sendMessage(ChatColor.GREEN + warp.name + ChatColor.WHITE + " by " + ChatColor.GREEN + warp.creator);
+                        sender.sendMessage(ChatColor.GREEN + warp.name + ChatColor.WHITE + " by " + ChatColor.GREEN + warp.getOwner());
                     }
                 }
             }

@@ -14,15 +14,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
 import de.xzise.xwarp.CommandMap;
+import de.xzise.xwarp.EconomyWrapper;
 import de.xzise.xwarp.PermissionWrapper;
 import de.xzise.xwarp.PluginProperties;
 import de.xzise.xwarp.WarpManager;
 import de.xzise.xwarp.dataconnections.DataConnection;
 
 public class MyWarp extends JavaPlugin {
-    
+
     public static PermissionWrapper permissions = new PermissionWrapper();
     public static XLogger logger;
+
+    private EconomyWrapper economyWrapper = new EconomyWrapper();
+    private PermissionWrapper permissionsWrapper = permissions;
 
     private CommandMap commands;
     private DataConnection dataConnection;
@@ -65,7 +69,7 @@ public class MyWarp extends JavaPlugin {
         }
 
         PluginProperties properties = new PluginProperties(this.getDataFolder(), this.getServer());
-
+        
         this.dataConnection = properties.getDataConnection();
         try {
             if (!this.dataConnection.load(new File(this.getDataFolder(), this.dataConnection.getFilename()))) {
@@ -79,33 +83,39 @@ public class MyWarp extends JavaPlugin {
             return;
         }
 
-        WarpManager warpList = new WarpManager(this, properties, this.dataConnection);
+        WarpManager warpList = new WarpManager(this, this.economyWrapper, properties, this.dataConnection);
 
         // Create commands
         this.commands = null;
         try {
-            this.commands = new CommandMap(warpList, this.getServer(), this.dataConnection, this.getDataFolder());
+            this.commands = new CommandMap(warpList, this.economyWrapper, this.getServer(), this.dataConnection, this.getDataFolder(), properties);
         } catch (IllegalArgumentException iae) {
             MyWarp.logger.severe("Couldn't initalize commands. Disabling " + this.name + "!", iae);
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        
+
         this.getCommand("go").setExecutor(this.commands.getCommand(""));
 
         MWBlockListener blockListener = new MWBlockListener(warpList);
         ServerListener serverListner = new ServerListener() {
             @Override
             public void onPluginEnabled(PluginEvent event) {
-                if (event.getPlugin().getDescription().getName().equals("Permissions")) {
-                    MyWarp.permissions.init(event.getPlugin());
+                String name = event.getPlugin().getDescription().getName();
+                if (name.equals("Permissions")) {
+                    MyWarp.this.permissionsWrapper.init(event.getPlugin());
+                } else if (name.equals("iConomy")) {
+                    MyWarp.this.economyWrapper.init(event.getPlugin());
                 }
             }
 
             @Override
             public void onPluginDisabled(PluginEvent event) {
-                if (event.getPlugin().getDescription().getName().equals("Permissions")) {
-                    MyWarp.permissions.init(null);
+                String name = event.getPlugin().getDescription().getName();
+                if (name.equals("Permissions")) {
+                    MyWarp.this.permissionsWrapper.init(null);
+                } else if (name.equals("iConomy")) {
+                    MyWarp.this.economyWrapper.init(null);
                 }
             }
         };

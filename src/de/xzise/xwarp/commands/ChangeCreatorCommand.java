@@ -5,25 +5,26 @@ import org.bukkit.command.CommandSender;
 
 import de.xzise.xwarp.WarpManager;
 
-public class PrivatizeCommand extends WarpCommand {
+public class ChangeCreatorCommand extends WarpCommand {
 
-    public PrivatizeCommand(WarpManager list, Server server) {
-        super(list, server, "", "private");
+    public ChangeCreatorCommand(WarpManager list, Server server) {
+        super(list, server, "player", "change-creator", "chcre");
     }
 
     @Override
     protected boolean executeEdit(CommandSender sender, String warpName, String creator, String[] parameters) {
-        this.list.privatize(warpName, creator, sender);
+        this.list.changeCreator(warpName, creator, sender, this.getPlayer(parameters[0]));
         return true;
     }
 
     @Override
     protected String[] getFullHelpText() {
-        return new String[] { "Sets a warp to private.", "Only invited and the creator could visit private warps." };
+        return new String[] { "Changes the creator of the warp." };
     }
 
     @Override
     protected String getSmallHelpText() {
-        return "Privatizes the warp";
+        return "Change the creator";
     }
+
 }

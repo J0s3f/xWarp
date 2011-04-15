@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import de.xzise.metainterfaces.ConsoleCommandWrapper;
 import de.xzise.metainterfaces.LinesCountable;
 import de.xzise.metainterfaces.Nameable;
+import de.xzise.xwarp.warpable.CommandSenderWrapper;
 
 public final class MinecraftUtil {
 
@@ -34,7 +35,7 @@ public final class MinecraftUtil {
     /*
      * Minecraft specific
      */
-    
+
     public static int getMaximumLines(CommandSender sender) {
         if (sender instanceof ConsoleCommandSender) {
             return CONSOLE_LINES_COUNT;
@@ -45,24 +46,42 @@ public final class MinecraftUtil {
         }
     }
 
-    /**
-     * Returns the name to a sender. If the sender has no player it returns null.
-     * 
-     * @param sender
-     *            The given sender.
-     * @return Returns the name of the sender and null if the sender is no player.
-     */
-    public static String getPlayerName(CommandSender sender) {
+    public static Player getPlayer(CommandSender sender) {
         if (sender instanceof Player) {
-            return ((Player) sender).getName();
+            return (Player) sender;
+        } else if (sender instanceof CommandSenderWrapper<?>) {
+            return MinecraftUtil.getPlayer(((CommandSenderWrapper<?>) sender).getSender());
         } else {
             return null;
         }
     }
 
     /**
-     * Returns a name in each case. If the sender is a player it return the player name. If the sender is the console it will return <code>[SERVER]</code>. In all other cases it return <code>Somebody</code>.
-     * @param sender The name of this sender will be determined.
+     * Returns the name to a sender. If the sender has no player it returns
+     * null.
+     * 
+     * @param sender
+     *            The given sender.
+     * @return Returns the name of the sender and null if the sender is no
+     *         player.
+     */
+    public static String getPlayerName(CommandSender sender) {
+        Player p = MinecraftUtil.getPlayer(sender);
+        if (p != null) {
+            return p.getName();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a name in each case. If the sender is a player it return the
+     * player name. If the sender is the console it will return
+     * <code>[SERVER]</code>. In all other cases it return <code>Somebody</code>
+     * .
+     * 
+     * @param sender
+     *            The name of this sender will be determined.
      * @return The name of the sender.
      */
     public static String getName(CommandSender sender) {
@@ -79,13 +98,18 @@ public final class MinecraftUtil {
             return name;
         }
     }
-    
+
     /**
      * Expands the name, so it match a player (if possible).
-     * @param name The primitive name.
-     * @param server The server where the player is searched.
-     * @return The name of a player on the server, if the name matches anything. Otherwise the inputed name.
-     * @see Uses {@link Server#getPlayer(String)} to determine the player object to the name.
+     * 
+     * @param name
+     *            The primitive name.
+     * @param server
+     *            The server where the player is searched.
+     * @return The name of a player on the server, if the name matches anything.
+     *         Otherwise the inputed name.
+     * @see Uses {@link Server#getPlayer(String)} to determine the player object
+     *      to the name.
      */
     public static String expandName(String name, Server server) {
         Player player = server.getPlayer(name);
@@ -95,7 +119,7 @@ public final class MinecraftUtil {
     public static String[] parseLine(String line) {
         return MinecraftUtil.parseLine(line, ' ');
     }
-    
+
     /**
      * Parses a string line using quoting and escaping. It will split the line
      * where a space is, but ignores quoted or escaped spaces.
@@ -177,10 +201,10 @@ public final class MinecraftUtil {
     /*
      * Java specific
      */
-    
+
     /**
-     * Checks if an object is set. Set mean at least “not null”. Following objects
-     * will be checked separate:
+     * Checks if an object is set. Set mean at least “not null”. Following
+     * objects will be checked separate:
      * 
      * <blockquote>
      * <table>
@@ -203,7 +227,8 @@ public final class MinecraftUtil {
      * </table>
      * </blockquote>
      * 
-     * @param o The tested object.
+     * @param o
+     *            The tested object.
      * @return If the object is not empty.
      */
     public static boolean isSet(Object o) {
@@ -220,7 +245,7 @@ public final class MinecraftUtil {
             return true;
         }
     }
-    
+
     public static String getOrdinal(int value) {
         String ordinal = "";
         if ((value % 100) / 10 == 1) {
@@ -242,7 +267,7 @@ public final class MinecraftUtil {
         }
         return value + ordinal;
     }
-    
+
     public static String scramble(String word) {
         Random rand = new Random();
         char[] input = word.toCharArray();
@@ -257,19 +282,19 @@ public final class MinecraftUtil {
                 result[newIdx] = input[i];
                 i++;
             }
-        }        
+        }
         return new String(result);
     }
-    
+
     public static int getWidth(int number, int base) {
         int width = 1;
         while (number >= base) {
-                number /= base;
-                width++;
+            number /= base;
+            width++;
         }
         return width;
     }
-    
+
     public static <T> boolean toogleEntry(T entry, List<T> list) {
         if (list.remove(entry)) {
             return false;
@@ -278,7 +303,7 @@ public final class MinecraftUtil {
             return true;
         }
     }
-    
+
     /**
      * Tries to convert a string into an integer. If the string is invalid it
      * returns <code>null</code>.
@@ -290,6 +315,38 @@ public final class MinecraftUtil {
     public static Integer tryAndGetInteger(String string) {
         try {
             return Integer.parseInt(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Tries to convert a string into a short. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     */
+    public static Short tryAndGetShort(String string) {
+        try {
+            return Short.parseShort(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Tries to convert a string into a byte. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     */
+    public static Byte tryAndGetByte(String string) {
+        try {
+            return Byte.parseByte(string);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -314,17 +371,17 @@ public final class MinecraftUtil {
         }
         return -1;
     }
-    
+
     public static <T> boolean contains(T o, T[] a) {
-	return MinecraftUtil.indexOf(o, a) >= 0;
+        return MinecraftUtil.indexOf(o, a) >= 0;
     }
-    
+
     public static <T> T getRandom(List<T> list) {
-	return list.get(new Random().nextInt(list.size()));
+        return list.get(new Random().nextInt(list.size()));
     }
-    
+
     public static <T> T getRandom(T[] array) {
-	return array[new Random().nextInt(array.length)];
+        return array[new Random().nextInt(array.length)];
     }
 
     public static void copyFile(File source, File destination) throws IOException {

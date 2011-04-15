@@ -24,7 +24,7 @@ public class WarpToCommand extends DefaultSubCommand {
         Warpable warped;
         String otherName = null;
         if (parameters.length == 4 && parameters[0].equalsIgnoreCase("to")) {
-            otherName = parameters[3];            
+            otherName = parameters[3];
         } else if (parameters.length == 3 && !parameters[0].equalsIgnoreCase("to")) {
             otherName = parameters[2];
         } else if (parameters.length == 0 || parameters.length > 3) {
@@ -45,7 +45,7 @@ public class WarpToCommand extends DefaultSubCommand {
                 return true;
             }
         }
-        
+
         int start = 0;
         if (parameters[0].equalsIgnoreCase("to") && (parameters.length == 2 || parameters.length == 3)) {
             start++;
@@ -54,7 +54,7 @@ public class WarpToCommand extends DefaultSubCommand {
         if (parameters.length > start + 1) {
             creator = this.getPlayer(parameters[start + 1]);
         }
-        //TODO Chunkloading
+        // TODO Chunkloading
         this.list.warpTo(parameters[start], creator, sender, warped, false);
         return true;
     }
