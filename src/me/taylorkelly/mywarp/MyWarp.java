@@ -18,6 +18,7 @@ import de.xzise.xwarp.EconomyWrapper;
 import de.xzise.xwarp.PermissionWrapper;
 import de.xzise.xwarp.PluginProperties;
 import de.xzise.xwarp.WarpManager;
+import de.xzise.xwarp.XWWorldListener;
 import de.xzise.xwarp.dataconnections.DataConnection;
 
 public class MyWarp extends JavaPlugin {
@@ -83,12 +84,12 @@ public class MyWarp extends JavaPlugin {
             return;
         }
 
-        WarpManager warpList = new WarpManager(this, this.economyWrapper, properties, this.dataConnection);
+        WarpManager warpManager = new WarpManager(this, this.economyWrapper, properties, this.dataConnection);
 
         // Create commands
         this.commands = null;
         try {
-            this.commands = new CommandMap(warpList, this.economyWrapper, this.getServer(), this.dataConnection, this.getDataFolder(), properties);
+            this.commands = new CommandMap(warpManager, this.economyWrapper, this.getServer(), this.dataConnection, this.getDataFolder(), properties);
         } catch (IllegalArgumentException iae) {
             MyWarp.logger.severe("Couldn't initalize commands. Disabling " + this.name + "!", iae);
             this.getServer().getPluginManager().disablePlugin(this);
@@ -97,7 +98,7 @@ public class MyWarp extends JavaPlugin {
 
         this.getCommand("go").setExecutor(this.commands.getCommand(""));
 
-        MWBlockListener blockListener = new MWBlockListener(warpList);
+        MWBlockListener blockListener = new MWBlockListener(warpManager);
         ServerListener serverListner = new ServerListener() {
             @Override
             public void onPluginEnabled(PluginEvent event) {
@@ -121,9 +122,11 @@ public class MyWarp extends JavaPlugin {
         };
 
         // Unless an event is called, to tell all enabled plugins
-        MyWarp.permissions.init(this.getServer().getPluginManager().getPlugin("Permissions"));
+        this.permissionsWrapper.init(this.getServer().getPluginManager().getPlugin("Permissions"));
+        this.economyWrapper.init(this.getServer().getPluginManager().getPlugin("iConomy"));
 
         this.getServer().getPluginManager().registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Low, this);
+        this.getServer().getPluginManager().registerEvent(Event.Type.WORLD_LOADED, new XWWorldListener(warpManager), Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, serverListner, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_DISABLE, serverListner, Priority.Low, this);
