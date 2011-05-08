@@ -14,19 +14,22 @@ import org.bukkit.plugin.java.JavaPlugin;
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
 import de.xzise.xwarp.CommandMap;
-import de.xzise.xwarp.EconomyWrapper;
+import de.xzise.xwarp.EconomyHandler;
 import de.xzise.xwarp.PermissionWrapper;
 import de.xzise.xwarp.PluginProperties;
 import de.xzise.xwarp.WarpManager;
-import de.xzise.xwarp.XWWorldListener;
 import de.xzise.xwarp.dataconnections.DataConnection;
+import de.xzise.xwarp.listeners.XWBlockListener;
+import de.xzise.xwarp.listeners.XWEntityListener;
+import de.xzise.xwarp.listeners.XWPlayerListener;
+import de.xzise.xwarp.listeners.XWWorldListener;
 
 public class MyWarp extends JavaPlugin {
 
     public static PermissionWrapper permissions = new PermissionWrapper();
     public static XLogger logger;
 
-    private EconomyWrapper economyWrapper = new EconomyWrapper();
+    private EconomyHandler economyWrapper;
     private PermissionWrapper permissionsWrapper = permissions;
 
     private CommandMap commands;
@@ -84,8 +87,10 @@ public class MyWarp extends JavaPlugin {
             return;
         }
 
+        this.economyWrapper = new EconomyHandler(properties, this.getServer().getPluginManager());
+        
         WarpManager warpManager = new WarpManager(this, this.economyWrapper, properties, this.dataConnection);
-
+        
         // Create commands
         this.commands = null;
         try {
@@ -98,14 +103,15 @@ public class MyWarp extends JavaPlugin {
 
         this.getCommand("go").setExecutor(this.commands.getCommand(""));
 
-        MWBlockListener blockListener = new MWBlockListener(warpManager);
+        XWPlayerListener playerListener = new XWPlayerListener(warpManager, properties);
+        XWBlockListener blockListener = new XWBlockListener(warpManager);
         ServerListener serverListner = new ServerListener() {
             @Override
             public void onPluginEnabled(PluginEvent event) {
                 String name = event.getPlugin().getDescription().getName();
                 if (name.equals("Permissions")) {
                     MyWarp.this.permissionsWrapper.init(event.getPlugin());
-                } else if (name.equals("iConomy")) {
+                } else {
                     MyWarp.this.economyWrapper.init(event.getPlugin());
                 }
             }
@@ -115,18 +121,23 @@ public class MyWarp extends JavaPlugin {
                 String name = event.getPlugin().getDescription().getName();
                 if (name.equals("Permissions")) {
                     MyWarp.this.permissionsWrapper.init(null);
-                } else if (name.equals("iConomy")) {
-                    MyWarp.this.economyWrapper.init(null);
+                } else {
+                    if (MyWarp.this.economyWrapper.unload(event.getPlugin())) {
+                        MyWarp.this.economyWrapper.init();
+                    }
                 }
             }
         };
 
         // Unless an event is called, to tell all enabled plugins
         this.permissionsWrapper.init(this.getServer().getPluginManager().getPlugin("Permissions"));
-        this.economyWrapper.init(this.getServer().getPluginManager().getPlugin("iConomy"));
 
+        this.economyWrapper.init();
+        
         this.getServer().getPluginManager().registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.WORLD_LOADED, new XWWorldListener(warpManager), Priority.Low, this);
+        this.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+        this.getServer().getPluginManager().registerEvent(Event.Type.ENTITY_DAMAGED, new XWEntityListener(properties, warpManager.getWarmUp()), Priority.Normal, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_ENABLE, serverListner, Priority.Low, this);
         this.getServer().getPluginManager().registerEvent(Event.Type.PLUGIN_DISABLE, serverListner, Priority.Low, this);

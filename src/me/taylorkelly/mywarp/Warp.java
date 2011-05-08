@@ -9,10 +9,13 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import de.xzise.MinecraftUtil;
+import de.xzise.metainterfaces.FixedLocation;
 import de.xzise.metainterfaces.LocationWrapper;
 import de.xzise.xwarp.EditorPermissions;
 import de.xzise.xwarp.Permissions;
 import de.xzise.xwarp.PermissionWrapper.PermissionTypes;
+import de.xzise.xwarp.PermissionWrapper.WorldPermission;
 import de.xzise.xwarp.warpable.Positionable;
 import de.xzise.xwarp.warpable.Warpable;
 import de.xzise.xwarp.warpable.WarpablePlayer;
@@ -96,11 +99,22 @@ public class Warp {
     }
 
     public boolean playerCanWarp(CommandSender sender, boolean viaSign) {
+        Player player = WarperFactory.getPlayer(sender);
+        Positionable pos = WarperFactory.getPositionable(sender);
         String name = null;
-        if (sender instanceof WarpablePlayer) {
-            name = ((WarpablePlayer) sender).getName();
-        } else if (sender instanceof Player) {
-            name = ((Player) sender).getName();
+        WorldPermission worldPermission = WorldPermission.TO_WORLD;
+        if (player != null) {
+            name = player.getName();   
+        }
+        if (pos != null) {
+            if (pos.getLocation().getWorld().getName().equals(this.getLocationWrapper().getWorld())) {
+                worldPermission = WorldPermission.WITHIN_WORLD;
+            }
+        }
+        
+        // If the player isn't allowed to warp to/within the world cancel here!
+        if (!MyWarp.permissions.hasWorldPermission(sender, worldPermission, this.getLocationWrapper().getWorld(), true)) {
+            return false;
         }
 
         if (name != null && this.owner.equals(name) && MyWarp.permissions.permission(sender, viaSign ? PermissionTypes.SIGN_WARP_OWN : PermissionTypes.TO_OWN))
@@ -126,16 +140,51 @@ public class Warp {
     public boolean isSave()
     {
         if (this.location.isValid()) {
-            Location location = this.getLocation();
+            Location location = this.getLocation().toLocation();
             Material lower = location.getBlock().getType();
-            LocationWrapper.moveY(location, 1.0D);
+            LocationWrapper.moveX(location, 1.0D);
             Material higher = location.getBlock().getType();
+            LocationWrapper.moveX(location, 1.0D);
+            Material top = location.getBlock().getType();
             
-            //return (plugin.sm.throughBlocks.contains(mat1.getId())) && (plugin.sm.throughBlocks.contains(mat2.getId()));
-            return lower == Material.AIR && higher == Material.AIR;
+            Boolean save = null;
+            //TODO: Test comma! Is there already a method?
+            double comma = MinecraftUtil.getComma(location.getY());
+            
+            //TODO: Determine comma for “step height”
+            if (comma > 0.5D) {
+                if (checkMaterials(new Material[] { lower }, Material.STEP) && checkOpaqueMaterials(higher)) {
+                    save = true;
+                }
+            }
+            
+            if (save == null) {
+                //TODO: Determine comma
+                if (comma <= 0.01D) {
+                    save = checkOpaqueMaterials(lower, higher);
+                } else {
+                    save = checkOpaqueMaterials(lower, higher, top);
+                }
+            }
+
+            return save;
         } else {
             return false;
         }
+    }
+    
+    private static boolean checkOpaqueMaterials(Material... materials) {
+        //TODO: Reorganize
+        return checkMaterials(materials, Material.AIR, Material.WATER, Material.STATIONARY_WATER, Material.SAPLING, Material.YELLOW_FLOWER, Material.RED_ROSE, Material.BROWN_MUSHROOM, Material.RED_MUSHROOM, Material.TORCH, Material.REDSTONE_TORCH_ON, Material.REDSTONE_TORCH_OFF, Material.REDSTONE_WIRE, Material.CROPS, Material.SIGN_POST, Material.LADDER, Material.RAILS, Material.WALL_SIGN, Material.LEVER, Material.STONE_PLATE, Material.WOOD_PLATE, Material.STONE_BUTTON, Material.SNOW, Material.WOODEN_DOOR, Material.PORTAL, Material.SUGAR_CANE_BLOCK, Material.IRON_DOOR, Material.CAKE_BLOCK);
+    }
+    
+    private static boolean checkMaterials(Material[] materials, Material... allowed) {
+        for (Material material : materials) {
+            if (!MinecraftUtil.contains(material, allowed)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void setLocation(Positionable positionable) {
@@ -202,8 +251,8 @@ public class Warp {
         this.welcomeMessage = message;
     }
 
-    public Location getLocation() {
-        return this.location.getLocation().clone();
+    public FixedLocation getLocation() {
+        return this.location.getLocation();
     }
     
     public LocationWrapper getLocationWrapper() {
@@ -223,6 +272,10 @@ public class Warp {
     }
 
     public void setLocation(Location location) {
+        this.setLocation(new FixedLocation(location));
+    }
+    
+    public void setLocation(FixedLocation location) {
         this.location = new LocationWrapper(location);
     }
 

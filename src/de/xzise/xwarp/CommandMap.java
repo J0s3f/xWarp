@@ -44,7 +44,7 @@ public class CommandMap {
     private HelpCommand helper;
     private WarpToCommand warper;
 
-    public CommandMap(WarpManager list, EconomyWrapper economyWrapper, Server server, DataConnection data, File pluginPath, PluginProperties properties) {
+    public CommandMap(WarpManager list, EconomyHandler economyWrapper, Server server, DataConnection data, File pluginPath, PluginProperties properties) {
         this.commands = new HashMap<String, SubCommand>();
 
         this.helper = new HelpCommand();
@@ -73,7 +73,7 @@ public class CommandMap {
         subCommands.add(new SearchCommand(list, server));
         subCommands.add(new ListCommand(list, server));
         subCommands.add(new InfoCommand(list, server, economyWrapper));
-        subCommands.add(new ReloadCommand(list, server));
+        subCommands.add(new ReloadCommand(list));
         subCommands.add(new ChangeCreatorCommand(list, server));
         subCommands.add(new PermissionsCommand(list, server));
         subCommands.add(new ExportCommand(list, server, pluginPath));

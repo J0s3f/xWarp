@@ -40,10 +40,10 @@ public class WarpManager {
     private DataConnection data;
     private CoolDown coolDown;
     private WarmUp warmUp;
-    private EconomyWrapper economy;
+    private EconomyHandler economy;
     private PluginProperties properties;
 
-    public WarpManager(Plugin plugin, EconomyWrapper economy, PluginProperties properties, DataConnection data) {
+    public WarpManager(Plugin plugin, EconomyHandler economy, PluginProperties properties, DataConnection data) {
         this.list = new WarpList();
         this.server = plugin.getServer();
         this.properties = properties;
@@ -53,19 +53,26 @@ public class WarpManager {
         this.economy = economy;
         this.loadFromDatabase();
     }
+    
+    public WarmUp getWarmUp() {
+        return this.warmUp;
+    }
 
     private void loadFromDatabase() {
         this.list.loadList(this.data.getWarps());
     }
-
-    public void loadFromDatabase(CommandSender sender) {
+    
+    public void reload(CommandSender sender) {
         if (MyWarp.permissions.permission(sender, PermissionTypes.ADMIN_RELOAD)) {
+            this.properties.read();
             this.loadFromDatabase();
+            this.economy.reloadConfig();
+            sender.sendMessage("Reload successfully!");
         } else {
             sender.sendMessage(ChatColor.RED + "You have no permission to reload.");
         }
     }
-
+    
     /**
      * Returns the number of warps a player has created.
      * 
@@ -577,7 +584,7 @@ public class WarpManager {
                 if (warped.equals(warper) || MyWarp.permissions.permission(warper, PermissionTypes.ADMIN_WARP_OTHERS)) {
                     if (warp.playerCanWarp(warper, viaSign)) {
                         Positionable warpedPos = WarperFactory.getPositionable(warped);
-                        if (!worldForce && warpedPos != null && warp.getLocation().getWorld() != warpedPos.getLocation().getWorld()) {
+                        if (!worldForce && warpedPos != null && warp.getLocation().world != warpedPos.getLocation().getWorld()) {
                             warper.sendMessage(ChatColor.RED + "The selected warp is in another world.");
                             warper.sendMessage(ChatColor.RED + "To force warping use /warp force-to <warp> [owner].");
                         } else {
@@ -640,7 +647,7 @@ public class WarpManager {
         if (owner == null || owner.isEmpty()) {
             sender.sendMessage(ChatColor.RED + "Global warp '" + name + "' doesn't exist.");
         } else {
-            sender.sendMessage(ChatColor.RED + "Player '" + owner + "' don't owns a warp named '" + name + "'.");
+            sender.sendMessage(ChatColor.RED + "Player '" + owner + "' doesn't own a warp named '" + name + "'.");
         }
     }
 

@@ -32,9 +32,6 @@ public class WarmUp {
     public void addPlayer(CommandSender warper, Warpable warped, Warp warp) {
         int warmup = this.warmupTime(warp.visibility, warper);
         if (warmup > 0) {
-            if (this.players.containsKey(warper)) {
-                plugin.getServer().getScheduler().cancelTask(this.players.get(warper));
-            }
             if (this.properties.isWarmupNotify()) {
                 warper.sendMessage(ChatColor.AQUA + "You will have to warm up for " + warmup + " secs");
             }
@@ -42,6 +39,17 @@ public class WarmUp {
             this.players.put(warper, taskIndex);
         } else {
             this.sendPlayer(warper, warped, warp);
+        }
+    }
+    
+    public boolean cancelWarmUp(CommandSender warper) {
+        //TODO: Only remove, if warp itself?
+        if (this.players.containsKey(warper)) {
+            this.plugin.getServer().getScheduler().cancelTask(this.players.get(warper));
+            this.players.remove(warper);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -77,7 +85,7 @@ public class WarmUp {
     }
 
     private void sendPlayer(CommandSender warper, Warpable warped, Warp warp) {
-        if (warped.teleport(warp.getLocation())) {
+        if (warped.teleport(warp.getLocation().toLocation())) {
             warped.sendMessage(ChatColor.AQUA + warp.welcomeMessage);
             this.down.addPlayer(warp.visibility, warper);
             if (!warped.equals(warper)) {

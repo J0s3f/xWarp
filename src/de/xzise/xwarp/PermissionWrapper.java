@@ -39,6 +39,13 @@ public class PermissionWrapper {
         // Create/Edit global warps
         CREATE_GLOBAL("warp.create.global"),
         
+        // Create warp sign to private warp
+        CREATE_SIGN_PRIVATE("warp.sign.create.private"),
+        // Create warp sign to public warp
+        CREATE_SIGN_PUBLIC("warp.sign.create.public"),
+        // Create warp sign to global warp
+        CREATE_SIGN_GLOBAL("warp.sign.create.global"),
+        
         // Edit own warps
         EDIT_DELETE("warp.edit.delete"),
         EDIT_INVITE("warp.edit.invite.add"),
@@ -112,6 +119,28 @@ public class PermissionWrapper {
         }
     }
 
+    public enum WorldPermission {
+        // Warp to worlds
+        TO_WORLD("warp.to.world.to"),
+        WITHIN_WORLD("warp.to.world.within");
+        
+        
+        public final String name;
+
+        WorldPermission(String name) {
+            this.name = name;
+        }
+
+        public static WorldPermission getType(String name) {
+            for (WorldPermission type : WorldPermission.values()) {
+                if (type.name.equals(name)) {
+                    return type;
+                }
+            }
+            return null;
+        }
+    }
+    
     public enum PermissionValues {
         /*
          * VALUES
@@ -162,7 +191,7 @@ public class PermissionWrapper {
 
     private static PermissionTypes[] ADMIN_PERMISSIONS = new PermissionTypes[] { PermissionTypes.ADMIN_DELETE, PermissionTypes.ADMIN_INVITE, PermissionTypes.ADMIN_UNINVITE, PermissionTypes.ADMIN_CHANGE_OWNER, PermissionTypes.ADMIN_MESSAGE, PermissionTypes.ADMIN_UPDATE, PermissionTypes.ADMIN_TO_ALL, PermissionTypes.ADMIN_GLOBAL, PermissionTypes.ADMIN_PUBLIC, PermissionTypes.ADMIN_PRIVATE, PermissionTypes.ADMIN_RELOAD, PermissionTypes.ADMIN_RENAME, PermissionTypes.ADMIN_CONVERT, PermissionTypes.ADMIN_EXPORT, PermissionTypes.ADMIN_EDITORS_ADD, PermissionTypes.ADMIN_EDITORS_REMOVE, PermissionTypes.ADMIN_WARP_OTHERS, PermissionTypes.ADMIN_CHANGE_CREATOR, PermissionTypes.ADMIN_PRICE};
 
-    private static PermissionTypes[] DEFAULT_PERMISSIONS = new PermissionTypes[] { PermissionTypes.TO_GLOBAL, PermissionTypes.TO_OWN, PermissionTypes.TO_OTHER, PermissionTypes.TO_INVITED, PermissionTypes.SIGN_WARP_GLOBAL, PermissionTypes.SIGN_WARP_OWN, PermissionTypes.SIGN_WARP_OTHER, PermissionTypes.SIGN_WARP_INVITED, PermissionTypes.CREATE_PRIVATE, PermissionTypes.CREATE_PUBLIC, PermissionTypes.CREATE_GLOBAL, };
+    private static PermissionTypes[] DEFAULT_PERMISSIONS = new PermissionTypes[] { PermissionTypes.TO_GLOBAL, PermissionTypes.TO_OWN, PermissionTypes.TO_OTHER, PermissionTypes.TO_INVITED, PermissionTypes.SIGN_WARP_GLOBAL, PermissionTypes.SIGN_WARP_OWN, PermissionTypes.SIGN_WARP_OTHER, PermissionTypes.SIGN_WARP_INVITED, PermissionTypes.CREATE_PRIVATE, PermissionTypes.CREATE_PUBLIC, PermissionTypes.CREATE_GLOBAL, PermissionTypes.EDIT_CHANGE_OWNER, PermissionTypes.EDIT_DELETE, PermissionTypes.EDIT_EDITORS_ADD, PermissionTypes.EDIT_EDITORS_REMOVE, PermissionTypes.EDIT_INVITE, PermissionTypes.EDIT_LOCATION, PermissionTypes.EDIT_MESSAGE, PermissionTypes.EDIT_PRICE, PermissionTypes.EDIT_RENAME, PermissionTypes.EDIT_UNINVITE, PermissionTypes.CREATE_SIGN_PRIVATE, PermissionTypes.CREATE_SIGN_PUBLIC, PermissionTypes.CREATE_SIGN_GLOBAL};
 
     private PermissionHandler handler = null;
 
@@ -183,13 +212,22 @@ public class PermissionWrapper {
             return false;
         }
     }
-
-    public boolean permission(CommandSender sender, PermissionTypes permission) {
+    
+    private Boolean has(CommandSender sender, String name) {
         Player player = MinecraftUtil.getPlayer(sender);
         if (player != null && this.handler != null) {
-            return this.handler.has(player, permission.name);
+            return this.handler.has(player, name);
         } else {
+            return null;
+        }
+    }
+
+    public boolean permission(CommandSender sender, PermissionTypes permission) {
+        Boolean hasPermission = this.has(sender, permission.name);
+        if (hasPermission == null) {
             return this.permissionInternal(sender, permission);
+        } else {
+            return hasPermission;
         }
     }
 
@@ -228,18 +266,27 @@ public class PermissionWrapper {
             return def;
         }
     }
+    
+    public boolean hasWorldPermission(CommandSender sender, WorldPermission permission, String world, boolean def) {
+        Boolean hasPermission = this.has(sender, permission.name + "." + world);
+        if (hasPermission != null) {
+            return hasPermission;
+        } else {
+            return def;
+        }
+    }
 
     public void init(Plugin plugin) {
         this.handler = null;
         if (plugin != null) {
             if (plugin.isEnabled()) {
                 this.handler = ((Permissions) plugin).getHandler();
-                MyWarp.logger.info("Permissions enabled.");
+                MyWarp.logger.info("Linked with permissions: " + plugin.getDescription().getFullName());
             } else {
-                MyWarp.logger.info("Permissions system found, but not enabled. Use defaults.");
+                MyWarp.logger.info("Doesn't link to disabled permissions: " + plugin.getDescription().getFullName());
             }
         } else {
-            MyWarp.logger.warning("Permission system not found. Use defaults.");
+            MyWarp.logger.warning("No permissions found until here. Permissions will be maybe activated later. Use defaults.");
         }
     }
 

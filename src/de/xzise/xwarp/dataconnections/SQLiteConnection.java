@@ -15,10 +15,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
-import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 
+import de.xzise.metainterfaces.FixedLocation;
 import de.xzise.metainterfaces.LocationWrapper;
 import de.xzise.xwarp.EditorPermissions;
 import de.xzise.xwarp.Permissions;
@@ -326,11 +326,12 @@ public class SQLiteConnection implements DataConnection {
                 double z = set.getDouble("z");
                 int yaw = set.getInt("yaw");
                 int pitch = set.getInt("pitch");
-                LocationWrapper loc = LocationWrapper.create(new Location(world, x, y, z, yaw, pitch), worldName);
+                LocationWrapper loc = new LocationWrapper(new FixedLocation(world, x, y, z, yaw, pitch), worldName);
                 Visibility visibility = Visibility.parseLevel(set.getInt("publicLevel"));
                 String welcomeMessage = set.getString("welcomeMessage");
                 String owner = set.getString("owner");
                 Warp warp = new Warp(index, name, creator, owner, loc, visibility, allPermissions.get(index), welcomeMessage);
+                warp.setPrice(set.getInt("price"));
                 result.add(warp);
                 if (!warp.getLocationWrapper().isValid()) {
                     invalidSize++;
@@ -408,12 +409,12 @@ public class SQLiteConnection implements DataConnection {
     
     private static void setLocation(LocationWrapper wrapper, int offset, PreparedStatement ps) throws SQLException {
         ps.setString(offset++, wrapper.getWorld());
-        Location location = wrapper.getLocation();
-        ps.setDouble(offset++, location.getX());
-        ps.setDouble(offset++, location.getY());
-        ps.setDouble(offset++, location.getZ());
-        ps.setInt(offset++, (int) location.getYaw());
-        ps.setInt(offset++, (int) location.getPitch());
+        FixedLocation location = wrapper.getLocation();
+        ps.setDouble(offset++, location.x);
+        ps.setDouble(offset++, location.y);
+        ps.setDouble(offset++, location.z);
+        ps.setInt(offset++, (int) location.yaw);
+        ps.setInt(offset++, (int) location.pitch);
     }
 
     @Override
