@@ -1,5 +1,7 @@
 package de.xzise.xwarp.commands;
 
+import me.taylorkelly.mywarp.MyWarp;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -9,6 +11,7 @@ import de.xzise.MinecraftUtil;
 import de.xzise.xwarp.WarpManager;
 import de.xzise.xwarp.lister.GenericLister;
 import de.xzise.xwarp.lister.ListSection;
+import de.xzise.xwarp.wrappers.permission.PermissionTypes;
 
 public class ListCommand extends DefaultSubCommand {
 
@@ -17,9 +20,12 @@ public class ListCommand extends DefaultSubCommand {
     }
 
     @Override
-    protected boolean internalExecute(CommandSender sender, String[] parameters) {
+    protected boolean internalExecute(CommandSender sender, String[] parameters) {        
         if (parameters.length == 3 && !MinecraftUtil.isInteger(parameters[2])) {
             return false;
+        } else if (!MyWarp.permissions.permission(sender, PermissionTypes.CMD_LIST)) {
+            sender.sendMessage(ChatColor.RED + "You have no permission to list warps.");
+            return true;
         }
 
         if (parameters.length == 2 && parameters[1].equalsIgnoreCase("legend")) {
@@ -76,7 +82,14 @@ public class ListCommand extends DefaultSubCommand {
 
     @Override
     protected String[] getFullHelpText() {
-        return new String[] { "Shows the given page of the warp list.", "If creator is set only the warps of the creator are listed." };
+        String[] legend = GenericLister.getLegend();
+        String[] lines = new String[2 + legend.length];
+        lines[0] = "Shows the given page of the warp list.";
+        lines[1] = "If creator is set only the warps of the creator are listed.";
+        for (int i = 0; i < legend.length; i++) {
+            lines[i + 2] = legend[i];
+        }
+        return lines;
     }
 
     @Override

@@ -1,8 +1,10 @@
-package de.xzise.xwarp.wrappers.economy;
+package de.xzise.wrappers.economy;
 
 import org.bukkit.plugin.Plugin;
 
-public interface EconomyWrapper {
+import de.xzise.wrappers.Wrapper;
+
+public interface EconomyWrapper extends Wrapper {
 
     AccountWrapper getAccount(String name);
     String format(int price);
