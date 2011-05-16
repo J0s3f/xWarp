@@ -637,10 +637,13 @@ public class WarpManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static void printPrivatizeMessage(CommandSender sender, Warp warp) {
         sender.sendMessage(ChatColor.WHITE + "You have privatized '" + ChatColor.GREEN + warp.name + ChatColor.WHITE + "'");
-        sender.sendMessage("If you'd like to invite others to it, use:");
-        sender.sendMessage(ChatColor.GREEN + "/warp invite \"" + warp.name + "\" " + warp.getOwner() + " <player>");
+        if (MyWarp.permissions.permissionOr(sender, PermissionTypes.EDIT_INVITE, PermissionTypes.ADMIN_INVITE)) {
+            sender.sendMessage("If you'd like to invite others to it, use:");
+            sender.sendMessage(ChatColor.GREEN + "/warp invite \"" + warp.name + "\" " + warp.getOwner() + " <player>");
+        }
     }
 
     private static boolean playerCanModifyWarp(CommandSender sender, Warp warp, Permissions permission) {
