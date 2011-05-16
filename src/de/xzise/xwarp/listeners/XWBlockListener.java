@@ -15,8 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import de.xzise.MinecraftUtil;
 import de.xzise.xwarp.WarpDestination;
 import de.xzise.xwarp.WarpManager;
-import de.xzise.xwarp.PermissionWrapper.PermissionTypes;
 import de.xzise.xwarp.signwarps.SignWarp;
+import de.xzise.xwarp.wrappers.permission.PermissionTypes;
 
 public class XWBlockListener extends BlockListener {
 
@@ -29,9 +29,9 @@ public class XWBlockListener extends BlockListener {
     @Override
     public void onBlockRightClick(BlockRightClickEvent event) {
         Block block = event.getBlock();
-        if(block.getState() instanceof Sign && MyWarp.permissions.permissionOr(event.getPlayer(), PermissionTypes.SIGN_WARP_GLOBAL, PermissionTypes.SIGN_WARP_INVITED, PermissionTypes.SIGN_WARP_OTHER, PermissionTypes.SIGN_WARP_OWN)) {
-                SignWarp signWarp = new SignWarp((Sign) block.getState());
-                signWarp.warp(this.list, event.getPlayer());
+        if (block.getState() instanceof Sign) {
+            SignWarp signWarp = new SignWarp((Sign) block.getState());
+            signWarp.warp(this.list, event.getPlayer());
         }
     }
     
@@ -41,9 +41,25 @@ public class XWBlockListener extends BlockListener {
         if (block.getState() instanceof Sign && !event.isCancelled()) {
             WarpDestination destination = SignWarp.getDestination(SignWarp.getFilledLines(event.getLines()));
             if (destination != null) {
-                if (MyWarp.permissions.permissionOr(event.getPlayer(), PermissionTypes.CREATE_SIGN_PRIVATE, PermissionTypes.CREATE_SIGN_PUBLIC, PermissionTypes.CREATE_SIGN_GLOBAL)) {
+                Warp warp = this.list.getWarp(destination.name, destination.creator, null);
+                PermissionTypes type = null;
+                if (warp == null) {
+                    type = PermissionTypes.SIGN_CREATE_UNKNOWN;
+                } else {
+                    switch (warp.visibility) {
+                    case PRIVATE :
+                        type = PermissionTypes.CREATE_SIGN_PRIVATE;
+                        break;
+                    case PUBLIC :
+                        type = PermissionTypes.CREATE_SIGN_PUBLIC;
+                        break;
+                    case GLOBAL :
+                        type = PermissionTypes.CREATE_SIGN_PRIVATE;
+                        break;
+                    }
+                }
+                if (MyWarp.permissions.permission(event.getPlayer(), type)) {
                     String line = "Warp sign found: ";
-                    Warp warp = this.list.getWarp(destination.name, destination.creator, null);
                     if (warp == null) {
                         String creator = "";
                         if (MinecraftUtil.isSet(destination.creator)) {
