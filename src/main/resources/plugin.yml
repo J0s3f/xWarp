@@ -1,5 +1,5 @@
 name: xWarp
-version: "${project.version}"
+version: "${project.version} b1"
 main: de.xzise.xwarp.XWarp
 description: Implementation to create warp points!
 order: postworld

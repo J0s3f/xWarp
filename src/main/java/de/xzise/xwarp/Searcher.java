@@ -1,6 +1,7 @@
 package de.xzise.xwarp;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -8,7 +9,9 @@ import org.bukkit.command.CommandSender;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.xwarp.lister.GenericLister;
+import de.xzise.xwarp.lister.GenericLister.Column;
 import de.xzise.xwarp.lister.ListSection;
+import de.xzise.xwarp.lister.WarpListSection;
 
 public class Searcher {
     private WarpManager warpList;
@@ -67,11 +70,11 @@ public class Searcher {
         } else if (maxPages < page) {
             this.sender.sendMessage(ChatColor.RED + "There are only " + maxPages + " pages of warps");
         } else {
-            List<ListSection> sections = new ArrayList<ListSection>(2);
+            List<WarpListSection> sections = new ArrayList<WarpListSection>(2);
 
             final int exactMatchesPages = Math.max((int) Math.ceil(this.exactMatches.size() / ((double) elementsPerPage)), 1);
             if (exactMatchesPages >= page) {
-                ListSection section = new ListSection("Exact matches for search: " + ChatColor.GREEN + this.query, MinecraftUtil.getMaximumLines(sender));
+                WarpListSection section = new WarpListSection("Exact matches for search: " + ChatColor.GREEN + this.query, MinecraftUtil.getMaximumLines(sender), EnumSet.allOf(Column.class));
                 elementsLeft--;
                 for (int i = (page - 1) * elementsLeft; i < this.exactMatches.size() && elementsLeft > 0; i++) {
                     section.addWarp(this.exactMatches.get(i));
@@ -86,7 +89,7 @@ public class Searcher {
             // DEBUG END
 
             if (this.matches.size() > offset && elementsLeft > 2) {
-                ListSection section = new ListSection("Partial matches for search: " + ChatColor.GREEN + this.query);
+                WarpListSection section = new WarpListSection("Partial matches for search: " + ChatColor.GREEN + this.query, MinecraftUtil.getMaximumLines(sender), EnumSet.allOf(Column.class));
                 elementsLeft--;
                 for (int i = offset; i < this.matches.size() && elementsLeft > 0; i++) {
                     section.addWarp(this.matches.get(i));

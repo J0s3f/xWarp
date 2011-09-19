@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.dynmap.markers.Marker;
 
 import de.xzise.MinecraftUtil;
-import de.xzise.StringComparator;
 import de.xzise.metainterfaces.FixedLocation;
 import de.xzise.metainterfaces.LocationWrapper;
 import de.xzise.xwarp.editors.EditorPermissions;
@@ -335,15 +334,6 @@ public class Warp extends DefaultWarpObject<WarpPermissions> {
     public void addEditor(String name, String permissions, EditorPermissions.Type type) {
         this.addEditor(name, type, WarpPermissions.parseString(permissions));
     }
-
-    public static final Comparator<Warp> WARP_NAME_COMPARATOR = new StringComparator<Warp>() {
-
-        @Override
-        protected String getValue(Warp warp) {
-            return warp.getName();
-        }
-
-    };
 
     public static final Comparator<Warp> WARP_INDEX_COMPARATOR = new Comparator<Warp>() {
 

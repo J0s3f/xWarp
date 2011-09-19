@@ -1,17 +1,12 @@
 package de.xzise.xwarp.lister;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-
-
 import org.angelsl.minecraft.randomshit.fontwidth.MinecraftFontWidthCalculator;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import de.xzise.Callback;
 import de.xzise.metainterfaces.FixedLocation;
 import de.xzise.metainterfaces.LocationWrapper;
 import de.xzise.xwarp.Warp;
@@ -30,31 +25,60 @@ public class GenericLister {
 
     public static final ChatColor PRIVATE_INVITED = ChatColor.YELLOW;
 
-    private GenericLister() {
-    }
+    private static final Callback<Integer, String> NON_PROPORTIONAL_WIDTH = new Callback<Integer, String>() {
+        @Override
+        public Integer call(String text) {
+            return ChatColor.stripColor(text).length();
+        }
+    };
     
+    private static final Callback<Integer, String> INGAME_MINECRAFT_WIDTH = new Callback<Integer, String>() {
+        @Override
+        public Integer call(String text) {
+            return MinecraftFontWidthCalculator.getStringWidth(text);
+        }
+    };
+
+    //@formatter:off
+    public static final String[] WPALegend = new String[] {
+        ChatColor.RED + "-------------------- " + ChatColor.WHITE + "LIST LEGEND" + ChatColor.RED + " -------------------",
+        GenericLister.GLOBAL_OWN + "Yours and allowed",
+        GenericLister.PRIVATE_OTHER + "Not yours and not allowed",
+        GenericLister.PRIVATE_INVITED + "Not yours and you are allowed"
+    };
+
+    public static final String[] WarpLegend = new String[] {
+        ChatColor.RED + "-------------------- " + ChatColor.WHITE + "LIST LEGEND" + ChatColor.RED + " -------------------",
+        GenericLister.GLOBAL_OWN + "Yours and it is global",
+        GenericLister.PUBLIC_OWN + "Yours and it is public.",
+        GenericLister.PRIVATE_OWN + "Yours and it is private.",
+        GenericLister.GLOBAL_OTHER + "Not yours and it is global",
+        GenericLister.PUBLIC_OTHER + "Not yours and it is public",
+        GenericLister.PRIVATE_OTHER + "Not yours, private and not invited",
+        GenericLister.PRIVATE_INVITED + "Not yours, private and you are invited"
+    };
+    //@formatter:on
+
+    private GenericLister() { }
+
     public enum Column {
         OWNER,
         WORLD,
         LOCATION;
     }
-    
-    public static void listPage(int page, int maxPages, CommandSender sender, ListSection... sections) {
-        listPage(page, maxPages, sender, EnumSet.allOf(Column.class), sections);
-    }
-    
-    public static void listPage(int page, int maxPages, CommandSender sender, Set<Column> columns, ListSection... sections) {
+
+    public static void listPage(int page, int maxPages, CommandSender sender, ListSection<?>... sections) {
 
         int charsPerLine = 40;
-        WidthCalculator widther = null;
+        Callback<Integer, String> widther = NON_PROPORTIONAL_WIDTH;
 
         // Get the correct width calculator!
         if (sender instanceof ConsoleCommandSender) {
             charsPerLine = 80;
-            widther = new ConsoleWidth();
+            widther = NON_PROPORTIONAL_WIDTH;
         } else if (sender instanceof Player) {
             charsPerLine = 40;
-            widther = new MinecraftWidth();
+            widther = INGAME_MINECRAFT_WIDTH;
         }
 
         // Generate header with the same length every time
@@ -62,54 +86,21 @@ public class GenericLister {
 
         sender.sendMessage(ChatColor.WHITE + intro);
 
-        final int width = widther.getWidth(intro);
+        final int width = widther.call(intro);
 
-        for (ListSection listSection : sections) {
+        for (ListSection<?> listSection : sections) {
             if (listSection.title != null && !listSection.title.isEmpty()) {
                 sender.sendMessage(listSection.title);
             }
-
-            for (Warp warp : listSection) {
-                String name = warp.getName();
-
-                String owner = warp.getOwner();
-                ChatColor color;
-                if (sender instanceof Player) {
-                    if (owner.equalsIgnoreCase(((Player) sender).getName())) {
-                        owner = "you";
-                    }
-                    color = GenericLister.getColor(warp, (Player) sender);
-                } else {
-                    color = GenericLister.getColor(warp, null);
-                }
-
-                String location = GenericLister.getLocationString(warp.getLocationWrapper(), columns.contains(Column.WORLD), columns.contains(Column.LOCATION));
-                final String creatorString = columns.contains(Column.OWNER) ? " by " + owner : "";
-                
-                // Find remaining length left
-                int left = width - widther.getWidth("''" + creatorString + location);
-
-                int nameLength = widther.getWidth(name);
-                if (left > nameLength) {
-                    name = "'" + name + "'" + ChatColor.WHITE + creatorString + whitespace(left - nameLength, widther.getWidth(" "));
-                } else if (left < nameLength) {
-                    name = "'" + substring(name, left, widther) + ChatColor.WHITE + "..." + color + "'";
-                    nameLength = widther.getWidth(name);
-                    // Cut location if needed
-                    location = substring(location, width - nameLength - widther.getWidth(creatorString), widther);
-                    name += ChatColor.WHITE + creatorString;
-                }
-
-                sender.sendMessage(color + name + location);
-            }
+            listSection.print(sender, widther, width);
         }
     }
 
     /**
      * Lob shit off that string till it fits.
      */
-    private static String substring(String name, int left, WidthCalculator widthCalculator) {
-        while (widthCalculator.getWidth(name) > left && name.length() > 3) {
+    public static String substring(String name, int left, Callback<Integer, String> widthCalculator) {
+        while (widthCalculator.call(name) > left && name.length() > 3) {
             name = name.substring(0, name.length() - 1);
         }
         return name;
@@ -136,19 +127,6 @@ public class GenericLister {
             width++;
         }
         return width;
-    }
-
-    public static String[] getLegend() {
-        List<String> result = new ArrayList<String>(8);
-        result.add(ChatColor.RED + "-------------------- " + ChatColor.WHITE + "LIST LEGEND" + ChatColor.RED + " -------------------");
-        result.add(GenericLister.GLOBAL_OWN + "Yours and it is global");
-        result.add(GenericLister.PUBLIC_OWN + "Yours and it is public.");
-        result.add(GenericLister.PRIVATE_OWN + "Yours and it is private.");
-        result.add(GenericLister.GLOBAL_OTHER + "Not yours and it is global");
-        result.add(GenericLister.PUBLIC_OTHER + "Not yours and it is public");
-        result.add(GenericLister.PRIVATE_OTHER + "Not yours, private and not invited");
-        result.add(GenericLister.PRIVATE_INVITED + "Not yours, private and you are invited");
-        return result.toArray(new String[0]);
     }
 
     public static ChatColor getColor(Warp warp, Player player) {
@@ -207,29 +185,6 @@ public class GenericLister {
         } else {
             return "";
         }
-    }
-
-}
-
-interface WidthCalculator {
-    int getWidth(String text);
-}
-
-class MinecraftWidth implements WidthCalculator {
-
-    @Override
-    public int getWidth(String text) {
-        return MinecraftFontWidthCalculator.getStringWidth(text);
-    }
-
-}
-
-class ConsoleWidth implements WidthCalculator {
-
-    @Override
-    public int getWidth(String text) {
-        // Assume that the font is non proportional!
-        return ChatColor.stripColor(text).length();
     }
 
 }

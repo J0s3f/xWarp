@@ -1,5 +1,7 @@
 package de.xzise.xwarp;
 
+import java.util.List;
+
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 
@@ -8,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import de.xzise.xwarp.WarpManager.WarpObjectGetter;
 import de.xzise.xwarp.dataconnections.DataConnection;
 import de.xzise.xwarp.editors.EditorPermissions;
+import de.xzise.xwarp.lister.options.Options;
 
 public interface Manager<T extends WarpObject<?>> {
 
@@ -28,6 +31,7 @@ public interface Manager<T extends WarpObject<?>> {
     boolean isNameAvailable(String name, String owner);
 
     T getWarpObject(String name, String owner, String playerName);
+    List<T> getWarpObjects(CommandSender sender, Options<?, T> options);
     ImmutableSet<T> getWarpObjects();
     int getSize();
 

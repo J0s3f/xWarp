@@ -1,5 +1,7 @@
 package de.xzise.xwarp;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -7,6 +9,7 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -15,6 +18,7 @@ import de.xzise.wrappers.permissions.Permission;
 import de.xzise.xwarp.WarpManager.WarpObjectGetter;
 import de.xzise.xwarp.dataconnections.DataConnection;
 import de.xzise.xwarp.list.PersonalList;
+import de.xzise.xwarp.lister.options.Options;
 
 public abstract class CommonManager<T extends DefaultWarpObject<?>, L extends PersonalList<T, ?>> implements Manager<T> {
 
@@ -151,5 +155,38 @@ public abstract class CommonManager<T extends DefaultWarpObject<?>, L extends Pe
         } else {
             sender.sendMessage(ChatColor.RED + "You don't have the permission, to change the worlds.");
         }
+    }
+
+    @Override
+    public List<T> getWarpObjects(CommandSender sender, Options<?, T> options) {
+        final List<T> allWarps;
+
+        String[] owners = options.getOwners();
+        if (MinecraftUtil.isSet(owners)) {
+            allWarps = Lists.newArrayList();
+            for (String owner : owners) {
+                allWarps.addAll(this.list.getWarps(owner));
+            }
+        } else {
+            allWarps = ImmutableList.copyOf(this.list.getWarpObjects());
+        }
+
+        ArrayList<T> validWarps = Lists.newArrayListWithCapacity(allWarps.size());
+
+        boolean noOptions = options.isEmpty();
+        for (int i = allWarps.size() - 1; i >= 0; i--) {
+            T w = allWarps.get(i);
+            if ((noOptions || options.isMatched(w)) && w.isListed(sender)) {
+                validWarps.add(w);
+            }
+        }
+
+        if (validWarps.size() > 0) {
+            // Removes everything which was to much
+            validWarps.trimToSize();
+            Collections.sort(validWarps, WarpObject.WARP_OBJECT_NAME_COMPARATOR);
+        }
+
+        return validWarps;
     }
 }

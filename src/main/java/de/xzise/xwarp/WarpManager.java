@@ -25,11 +25,6 @@ import de.xzise.metainterfaces.LocationWrapper;
 import de.xzise.metainterfaces.Nameable;
 import de.xzise.wrappers.economy.EconomyHandler;
 import de.xzise.xwarp.Warp.Visibility;
-import de.xzise.xwarp.commands.warp.ListCommand.CreatorOptions;
-import de.xzise.xwarp.commands.warp.ListCommand.OwnerOptions;
-import de.xzise.xwarp.commands.warp.ListCommand.VisibilityOptions;
-import de.xzise.xwarp.commands.warp.ListCommand.WhiteBlackList;
-import de.xzise.xwarp.commands.warp.ListCommand.WorldOptions;
 import de.xzise.xwarp.dataconnections.DataConnection;
 import de.xzise.xwarp.dataconnections.HModConnection;
 import de.xzise.xwarp.dataconnections.IdentificationInterface;
@@ -507,8 +502,8 @@ public class WarpManager extends CommonManager<Warp, WarpList<Warp>> {
             }
         }
         
-        Collections.sort(exactMatches, Warp.WARP_NAME_COMPARATOR);
-        Collections.sort(matches, Warp.WARP_NAME_COMPARATOR);
+        Collections.sort(exactMatches, Warp.WARP_OBJECT_NAME_COMPARATOR);
+        Collections.sort(matches, Warp.WARP_OBJECT_NAME_COMPARATOR);
         return new MatchList(exactMatches, matches);
     }
 
@@ -588,50 +583,6 @@ public class WarpManager extends CommonManager<Warp, WarpList<Warp>> {
         } else {
             warper.sendMessage(ChatColor.RED + "The location of the warp is invalid.");
         }
-    }
-
-    private static boolean getWhiteBlackListed(Boolean... booleans) {
-        for (Boolean b : booleans) {
-            if (b != null && !b) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean isSet(WhiteBlackList<?, ?> whiteBlackList) {
-        return !whiteBlackList.isEmpty();
-    }
-
-    public List<Warp> getWarps(CommandSender sender, CreatorOptions creators, OwnerOptions owners, WorldOptions worlds, VisibilityOptions visibilities) {
-        List<Warp> allWarps = new ArrayList<Warp>();
-
-        //TODO: Update MU.isSet() for "setable" interface
-        if (MinecraftUtil.isSet(owners.getWhitelist())) {
-            for (String owner : owners.getWhitelist()) {
-                allWarps.addAll(this.list.getWarps(owner));
-            }
-        } else {
-            allWarps.addAll(this.list.getWarpObjects());
-        }
-
-        ArrayList<Warp> validWarps = new ArrayList<Warp>(allWarps.size());
-
-        boolean noOptions = !(isSet(creators) || isSet(owners) || isSet(worlds) || isSet(visibilities));
-        for (int i = allWarps.size() - 1; i >= 0; i--) {
-            Warp w = allWarps.get(i);
-            if ((noOptions || getWhiteBlackListed(creators.call(w), owners.call(w), worlds.call(w), visibilities.call(w))) && w.isListed(sender)) {
-                validWarps.add(w);
-            }
-        }
-
-        if (validWarps.size() > 0) {
-            // Removes everything which was to much
-            validWarps.trimToSize();
-            Collections.sort(validWarps, Warp.WARP_NAME_COMPARATOR);
-        }
-
-        return validWarps;
     }
 
     public int getSize(CommandSender sender, String creator) {

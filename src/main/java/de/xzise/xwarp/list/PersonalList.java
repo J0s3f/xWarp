@@ -60,7 +60,7 @@ public abstract class PersonalList<T extends WarpObject<?>, G extends GlobalMap<
             }
             creatorWarps.add(warpObject);
         }
-        
+
         G namedWarps = this.nameMap.get(warpObject.getName().toLowerCase());
         if (namedWarps == null) {
             namedWarps = this.createGlobalMap();
