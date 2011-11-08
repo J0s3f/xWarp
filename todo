@@ -16,12 +16,13 @@
 == TO BE DONE ==
 
 3.2.0
+  - marker descriptions
   - wpa list command
   - Export hmod compatible warps
   - auto completion
-  - pay only difference for change visibility (maybe 3.1.0)
+  - pay only difference for change visibility
   - default warping price for a warp
-  - Permissions pools (like xwarp.warp.edit.default) with BPU 1.3.0
+  - TEST Permissions pools (like xwarp.warp.edit.default) with BPU 1.3.0
 
 3.3.0
   - regex parameter for warp list

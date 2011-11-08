@@ -29,7 +29,9 @@ public class PluginProperties {
     private boolean cancelWarmUpOnMovement;
     private boolean createUpdates;
     private boolean caseSensitive;
+
     private String defaultMessage;
+    private double defaultPrice;
 
     private String permissionsPlugin;
 
@@ -39,6 +41,7 @@ public class PluginProperties {
     private boolean markerEnabled;
     private String markerPNG;
     private ImmutableList<String> markerVisibilities;
+    private String markerDescription;
 
     private ImmutableSet<Column> defaultColumns;
 
@@ -125,40 +128,31 @@ public class PluginProperties {
         return this.markerEnabled;
     }
 
+    public String getMarkerDescription() {
+        return this.markerDescription;
+    }
+
     public ImmutableSet<Column> getListColumns() {
+        return this.defaultColumns;
+    }
+
+    public String getDefaultMessage() {
+        return this.defaultMessage;
+    }
+
+    public double getDefaultPrice() {
+        return this.defaultPrice;
+    }
+
+    public ImmutableSet<Column> getDefaultColumns() {
         return this.defaultColumns;
     }
 
     public void read() {
         Configuration configuration = new Configuration(this.configFile);
-        if (this.configFile.exists()) {
-            configuration.load();
-        } else {
-            configuration.setProperty("data.connection", "sqlite");
-            configuration.setProperty("economy.plugin", "");
-            configuration.setProperty("economy.base-account", "");
-            configuration.setProperty("permissions.plugin", "");
-            configuration.setProperty("warmup.notify", true);
-            configuration.setProperty("warmup.cancel.movement", false);
-            configuration.setProperty("warmup.cancel.damage", true);
-            configuration.setProperty("cooldown.notify", true);
-            configuration.setProperty("case-sensitive", false);
-            configuration.setProperty("update-if-exists", false);
-            configuration.setProperty("use-force-to", false);
-            configuration.setProperty("show-free-price-message", false);
-            configuration.setProperty("warp.defaultmsg", "Welcome to '{NAME}'!");
-            configuration.setProperty("marker.png", "marker.png");
-            configuration.setProperty("marker.visibilities", DEFAULT_VISIBILITIES);
-            configuration.setProperty("marker.enabled", false);
-            configuration.setProperty("list.columns", DEFAULT_COLUMNS);
-            if (configuration.save()) {
-                XWarp.logger.info("Successfully created default configuration file.");
-            } else {
-                XWarp.logger.warning("Unable to create properties file.");
-            }
-        }
+        configuration.load();
 
-        String dataConnectionProperty = configuration.getString("data.connection");
+        String dataConnectionProperty = configuration.getString("data.connection", "sqlite");
 
         if ("hmod".equalsIgnoreCase(dataConnectionProperty)) {
             this.dataConnection = new HModConnection(this.server);
@@ -166,7 +160,7 @@ public class PluginProperties {
             this.dataConnection = new YmlConnection();
         } else {
             if (!"sqlite".equalsIgnoreCase(dataConnectionProperty)) {
-                XWarp.logger.warning("Unrecognized data-connection selected (" + dataConnectionProperty + ")");
+                XWarp.logger.warning("Unrecognized data-connection selected (" + dataConnectionProperty + ")! Using sqlite instead.");
             }
             // Per default sqlite
             this.dataConnection = new SQLiteConnection(server);
@@ -192,6 +186,7 @@ public class PluginProperties {
         this.markerPNG = configuration.getString("marker.png", "marker.png");
         this.markerVisibilities = ImmutableList.copyOf(configuration.getStringList("marker.visibilities", DEFAULT_VISIBILITIES));
         this.markerEnabled = configuration.getBoolean("marker.enabled", false);
+        this.markerDescription = configuration.getString("marker.description", "");
 
         Builder<Column> columnsBuilder = ImmutableSet.builder();
         for (String column : configuration.getStringList("list.columns", DEFAULT_COLUMNS)) {
@@ -206,13 +201,6 @@ public class PluginProperties {
         this.defaultColumns = columnsBuilder.build();
 
         this.defaultMessage = configuration.getString("warp.defaultmsg", "Welcome to '{NAME}'!");
-    }
-
-    public String getDefaultMessage() {
-        return this.defaultMessage;
-    }
-
-    public ImmutableSet<Column> getDefaultColumns() {
-        return this.defaultColumns;
+        this.defaultPrice = configuration.getDouble("warp.defaultprice", 0);
     }
 }

@@ -558,9 +558,10 @@ public class WarpManager extends CommonManager<Warp, WarpList<Warp>> {
                                 this.printPayMessage(warper, 0);
                                 this.warmUp.addPlayer(warper, warped, warp);
                             } else {
-                                switch (this.economy.pay(warper, warp.getOwner(), warp.getPrice(), price)) {
+                                final double ownerPrice = MinecraftUtil.equals(warp.getRawPrice(), 0) ? this.properties.getDefaultPrice() : warp.getRawPrice();
+                                switch (this.economy.pay(warper, warp.getOwner(), ownerPrice, price)) {
                                 case PAID:
-                                    double totalPrice = warp.getPrice() + price;
+                                    double totalPrice = ownerPrice + price;
                                     this.printPayMessage(warper, totalPrice);
                                 case UNABLE:
                                     this.warmUp.addPlayer(warper, warped, warp);

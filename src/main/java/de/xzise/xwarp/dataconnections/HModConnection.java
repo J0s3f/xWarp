@@ -446,7 +446,7 @@ public class HModConnection implements DataConnection {
                 warpLine.append(makeNullsParsable(warp.getRawWelcomeMessage()) + SEPARATOR);
                 if (version >= 3) {
                     warpLine.append(makeParsable(warp.getCreator()) + SEPARATOR);
-                    warpLine.append(makeParsable(warp.getPrice()) + SEPARATOR);
+                    warpLine.append(makeParsable(warp.getRawPrice()) + SEPARATOR);
                 }
                 if (version >= 4) {
                     warpLine.append(makeParsable(warp.getCoolDown()) + SEPARATOR);
@@ -617,7 +617,7 @@ public class HModConnection implements DataConnection {
     public void updatePrice(Warp warp) {
         List<Warp> warps = this.getWarps();
         Warp updated = warps.get(warps.indexOf(warp));
-        updated.setPrice(warp.getPrice());
+        updated.setPrice(warp.getRawPrice());
         this.writeWarps(warps);
     }
 

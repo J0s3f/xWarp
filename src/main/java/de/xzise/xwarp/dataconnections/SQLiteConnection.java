@@ -476,7 +476,7 @@ public class SQLiteConnection implements WarpProtectionConnection {
                     ps.setInt(10, warp.getVisibility().getInt(warp.isListed()));
                     ps.setString(11, warp.getRawWelcomeMessage());
                     ps.setString(12, warp.getOwner());
-                    ps.setDouble(13, warp.getPrice());
+                    ps.setDouble(13, warp.getRawPrice());
                     ps.addBatch();
 
                     for (EditorPermissionEntry<WarpPermissions> editorPermissionEntry : warp.getEditorPermissionsList()) {
@@ -642,7 +642,7 @@ public class SQLiteConnection implements WarpProtectionConnection {
 
             @Override
             public void fillStatement(Warp warp, PreparedStatement statement) throws SQLException {
-                statement.setDouble(1, warp.getPrice());
+                statement.setDouble(1, warp.getRawPrice());
                 statement.setInt(2, warp.index);
             }
         });

@@ -32,13 +32,13 @@ public class InfoCommand extends WarpCommand {
         this.wrapper = wrapper;
     }
 
-    private String getPrice(double price, double base) {
-        if (price < 0 || (price == 0 && base == 0)) {
+    private String getPrice(Warp warp, double base) {
+        if (warp.isFree() || (MinecraftUtil.equals(warp.getRawPrice(), 0) && MinecraftUtil.equals(base, 0))) {
             return "Gratis";
-        } else if (price == 0 && base != 0) {
+        } else if (MinecraftUtil.equals(warp.getRawPrice(), 0) && base != 0) {
             return "Only permissions price (" + this.wrapper.format(base) + ")";
         } else {
-            return this.wrapper.format(price) + " base price: " + this.wrapper.format(base);
+            return this.wrapper.format(warp.getRawPrice()) + " base price: " + this.wrapper.format(base);
         }
     }
 
@@ -79,12 +79,7 @@ public class InfoCommand extends WarpCommand {
             visibility = GenericLister.getColor(warp, (Player) sender) + visibility;
         }
         sender.sendMessage("Visibility: " + visibility);
-        if (this.wrapper.isActive()) {
-            sender.sendMessage("Price: " + ChatColor.GREEN + this.getPrice(warp.getPrice(), basePrice));
-        } else if (warp.getPrice() != 0) {
-            sender.sendMessage("Price: " + ChatColor.GREEN + this.getPrice(warp.getPrice(), basePrice) + ChatColor.RED + " (Inactive)");
-        }
-
+        sender.sendMessage("Price: " + ChatColor.GREEN + this.getPrice(warp, basePrice) + (this.wrapper.isActive() ? "" : ChatColor.RED + " (Inactive)"));
         sender.sendMessage("Cooldown: " + CoolDown.getCooldownTime(warp, sender) + " sec   Warmup: " + WarmUp.getWarmupTime(warp, sender) + " sec");
 
         Collection<EditorPermissionEntry<WarpPermissions>> allEditorPermissions = warp.getEditorPermissionsList();

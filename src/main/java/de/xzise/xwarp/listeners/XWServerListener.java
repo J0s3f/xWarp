@@ -6,12 +6,13 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.dynmap.DynmapPlugin;
 
+import de.xzise.wrappers.WrapperServerListener;
 import de.xzise.wrappers.Handler;
 import de.xzise.xwarp.PluginProperties;
 import de.xzise.xwarp.WarpManager;
 import de.xzise.xwarp.XWarp;
 
-public class XWServerListener extends BPUServerListener {
+public class XWServerListener extends WrapperServerListener {
 
     private final PluginProperties properties;
     private final WarpManager warpManager;

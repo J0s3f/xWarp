@@ -268,7 +268,7 @@ public class YmlConnection implements WarpProtectionConnection {
             fixedLocToMap(warpMap, warp.getLocation(), false, true);
             warpMap.put("visibility", warp.getVisibility().name);
             warpMap.put("listed", warp.isListed());
-            warpMap.put("price", warp.getPrice());
+            warpMap.put("price", warp.getRawPrice());
             warpMap.put("cooldown", warp.getCoolDown());
             warpMap.put("warmup", warp.getWarmUp());
             String rawMessage = warp.getRawWelcomeMessage();
@@ -463,7 +463,7 @@ public class YmlConnection implements WarpProtectionConnection {
 
     @Override
     public void updatePrice(Warp warp) {
-        this.updateWarpField(warp, "creator", warp.getPrice());
+        this.updateWarpField(warp, "creator", warp.getRawPrice());
     }
 
     private static <T extends Enum<T> & Editor> Map<EditorPermissions.Type, Map<String, EditorPermissions<T>>> getEditorPermissions(List<ConfigurationNode> editorNodes, Map<String, T> names, Class<T> clazz) {

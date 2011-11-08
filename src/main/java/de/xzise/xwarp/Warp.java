@@ -357,7 +357,7 @@ public class Warp extends DefaultWarpObject<WarpPermissions> {
         this.price = price;
     }
 
-    public double getPrice() {
+    public double getRawPrice() {
         return this.price;
     }
 
